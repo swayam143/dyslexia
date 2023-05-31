@@ -1,0 +1,5 @@
+Flask
+Flask-Cors
+pymysql
+gunicorn==20.1.0
+pyodbc

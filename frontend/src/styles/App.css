@@ -1,0 +1,21 @@
+:root {
+  --primary: #007bff;
+  --secondary: #ff007f;
+}
+
+.relative {
+  position: relative;
+}
+.icon_btn_cam {
+  position: absolute !important;
+  top: 13px;
+  right: -6px;
+  color: var(--primary) !important;
+}
+
+.icon_btn_del {
+  position: absolute !important;
+  top: 69px;
+  right: -17px;
+  color: var(--secondary) !important;
+}
