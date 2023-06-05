@@ -25,15 +25,16 @@ import "../styles/App.css";
 import Home from "./home/Home";
 import { useSelector } from "react-redux";
 import Profile from "./profile/Profile";
+import FamilyMember from "./familyMember/FamilyMember";
 
 const App = () => {
   const ChildData = useSelector((state) => state.childData.childData);
 
   return (
     <>
-      {ChildData !== null && <Home />}
-
       <BrowserRouter>
+        {" "}
+        {ChildData !== null && <Home />}
         <Routes>
           <Route
             path="/"
@@ -70,6 +71,12 @@ const App = () => {
             path="/profile"
             element={
               ChildData === null ? <Navigate to="/login" /> : <Profile />
+            }
+          />
+          <Route
+            path="/familyMember"
+            element={
+              ChildData === null ? <Navigate to="/login" /> : <FamilyMember />
             }
           />
         </Routes>

@@ -6,7 +6,12 @@ import { useState } from "react";
 import { useRef } from "react";
 import PhotoCamera from "@mui/icons-material/PhotoCamera";
 import CancelIcon from "@mui/icons-material/Cancel";
-import { APIURL2 } from "../../utils/APIURL";
+import { APIURL, APIURL2 } from "../../utils/APIURL";
+import axios from "axios";
+import { toast } from "react-toastify";
+import Validator from "validatorjs";
+import { useDispatch } from "react-redux";
+import { updateProfile } from "../../redux/childSlice";
 
 const style = {
   position: "absolute",
@@ -27,11 +32,60 @@ export default function EditProfileModal({ open, setOpen, ChildData }) {
   const [file, setFile] = useState();
   const fileInputRef = useRef(null);
   const [photo, setPhoto] = useState(null);
+  const dispatch = useDispatch();
 
-  console.log(ChildData);
+  // console.log(ChildData);
+
+  React.useEffect(() => {
+    setUsername(ChildData.username);
+  }, [ChildData]);
+
+  const updateChildData = async () => {
+    const checkdata = {
+      username: "required",
+    };
+    const sendData = { username };
+
+    const validation = new Validator(sendData, checkdata);
+
+    if (validation.fails()) {
+      const errorData = Object.values(validation.errors.errors);
+      errorData.map((x) => toast.error(`${x}`));
+    } else {
+      try {
+        const formData = new FormData();
+        formData.append("childId", ChildData.childId);
+        formData.append("username", username);
+
+        formData.append("photo", photo ? photo : "");
+
+        const response = await axios.post(`${APIURL}child/edit`, formData);
+
+        if (response.status === 200) {
+          toast.success("Child data updated successfully");
+          const updateData = {
+            photo: photo?.name,
+            username: username,
+            childId: ChildData.childId,
+          };
+
+          console.log(updateData);
+          dispatch({ type: updateProfile, payload: updateData });
+          setFile(null);
+
+          // console.log(photo?.name);
+          // console.log(ChildData.photo);
+        } else {
+          toast.error("Failed to update child data");
+        }
+      } catch (error) {
+        toast.error("An error occurred while updating child data");
+      }
+    }
+  };
 
   function handleChange(e) {
-    console.log(e.target.files);
+    // console.log(e.target.files);
     setFile(URL.createObjectURL(e.target.files[0]));
     setPhoto(e.target.files[0]);
   }
@@ -105,7 +159,11 @@ export default function EditProfileModal({ open, setOpen, ChildData }) {
               className="d-flex align-items-center justify-content-center"
               style={{ gap: "15px" }}
             >
-              <button style={{ width: "auto" }} className="px-3 prbutton">
+              <button
+                style={{ width: "auto" }}
+                className="px-3 prbutton"
+                onClick={updateChildData}
+              >
                 Submit
               </button>
 

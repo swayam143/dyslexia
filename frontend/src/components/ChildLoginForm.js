@@ -33,14 +33,15 @@ const ChildLoginForm = () => {
     } else {
       try {
         const response = await axios.post(`${APIURL}child/login`, sendData);
+        console.log(response);
         navigate("/profile");
-        // console.log(response.data.data);
+
         toast.success("Child login successful");
-        //
+
         dispatch({ type: savedChildData, payload: response.data.data });
       } catch (e) {
-        // console.log(e.response.data);
-        toast.error(e.response.data);
+        // console.log(e.response.data.message);
+        toast.error(e.response.data.message);
       }
     }
   };

@@ -48,7 +48,7 @@ def child_register():
     cursor.execute(select_query, (username,))
     count = cursor.fetchone()[0]
     if count > 0:
-        return jsonify({'message': 'Username already exists'})
+        return jsonify({'message': 'Username already exists'}), 400
 
     # Validate file type
     if photo_file and allowed_file(photo_file.filename):
@@ -90,14 +90,13 @@ def child_login():
         # print(child)
         return jsonify({'message': 'Child login successful', 'data': child_dict})
     else:
-        # return jsonify({'message': 'Invalid username or password'})
-        return Response("Invalid username or password", status=401, mimetype='application/json')
+        return jsonify({'message': 'Invalid username or password'}), 400
+        # return Response("Invalid username or password", status=401, mimetype='application/json')
 
 
 @app.route('/api/child/edit', methods=['POST'])
 def edit_child():
     # Retrieve the edited child information from the request
-
     child_id = request.form['childId']
     new_username = request.form['username']
     new_photo_file = request.files['photo']
@@ -140,6 +139,14 @@ def register():
     voice_file = request.files['voice']
     childId = request.form['childId']
 
+    # Check if the relation already exists for the given childId
+    cursor = db.cursor()
+    select_query = "SELECT COUNT(*) FROM users WHERE relation = ? AND childId = ?"
+    cursor.execute(select_query, (relation, childId))
+    count = cursor.fetchone()[0]
+    if count > 0:
+        return jsonify({'message': 'The relation already exists for the given child'})
+
     # Validate file types
     if photo_file and allowed_file(photo_file.filename) and voice_file and allowed_file(voice_file.filename):
         # Save the uploaded files
@@ -156,7 +163,6 @@ def register():
         insert_query = "INSERT INTO users (name, relation, photo, voice, childId) VALUES (?, ?, ?, ?, ?)"
         values = (name, relation, photo_path, voice_path, childId)
 
-        cursor = db.cursor()
         cursor.execute(insert_query, values)
         cursor.commit()
 
@@ -180,6 +186,8 @@ def get_user(childId):
         users_list = []
         for user in users:
             user_dict = {
+                'userId': user.userId,
+                'childId': user.childId,
                 'name': user.name,
                 'relation': user.relation,
                 'photo': user.photo.replace("uploads\\", ""),
@@ -189,8 +197,57 @@ def get_user(childId):
 
         return jsonify({'message': 'User data retrieved successfully', 'data': users_list})
     else:
-        return jsonify({'message': 'No users found for the given childId'})
+        return jsonify({'message': 'No users found for the given childId', 'data': []})
 
+
+@app.route('/api/editUser', methods=['POST'])
+def edit_user():
+    # Retrieve the edited user information from the request
+    user_id = request.form['userId']
+    new_name = request.form['name']
+    new_relation = request.form['relation']
+    new_photo_file = request.files.get('photo')
+    new_voice_file = request.files.get('voice')
+
+    # Check if the user with the given user_id exists
+    cursor = db.cursor()
+    select_query = "SELECT COUNT(*) FROM users WHERE userId = ?"
+    cursor.execute(select_query, (user_id,))
+    count = cursor.fetchone()[0]
+    if count == 0:
+        return jsonify({'message': 'User not found'})
+
+    # Update the user's name and relation if provided
+    if new_name and new_relation:
+        update_query = "UPDATE users SET name = ?, relation = ? WHERE userId = ?"
+        cursor.execute(update_query, (new_name, new_relation, user_id))
+        cursor.commit()
+
+    # Update the user's photo if a new photo file is provided
+    if new_photo_file and allowed_file(new_photo_file.filename):
+        # Save the uploaded photo
+        new_photo_filename = secure_filename(new_photo_file.filename)
+        new_photo_path = os.path.join(
+            app.config['UPLOAD_FOLDER'], new_photo_filename)
+        new_photo_file.save(new_photo_path)
+
+        update_query = "UPDATE users SET photo = ? WHERE userId = ?"
+        cursor.execute(update_query, (new_photo_path, user_id))
+        cursor.commit()
+
+    # Update the user's voice if a new voice file is provided
+    if new_voice_file and allowed_file(new_voice_file.filename):
+        # Save the uploaded voice
+        new_voice_filename = secure_filename(new_voice_file.filename)
+        new_voice_path = os.path.join(
+            app.config['UPLOAD_FOLDER'], new_voice_filename)
+        new_voice_file.save(new_voice_path)
+
+        update_query = "UPDATE users SET voice = ? WHERE userId = ?"
+        cursor.execute(update_query, (new_voice_path, user_id))
+        cursor.commit()
+
+    return jsonify({'message': 'User information updated successfully'})
 
 # Define other API endpoints here...
 

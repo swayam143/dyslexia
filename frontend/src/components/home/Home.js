@@ -1,12 +1,14 @@
 import React from "react";
 import Logout from "./Logout";
+import { useNavigate } from "react-router-dom";
 
 const TabsArr = [
   { title: "Profile", path: "/profile" },
-  { title: "Family Members", path: "/family" },
+  { title: "Family Members", path: "/familyMember" },
 ];
 
 const Home = () => {
+  const navigate = useNavigate();
   return (
     <div className="container">
       <div className="row">
@@ -19,7 +21,12 @@ const Home = () => {
           style={{ gap: "10px" }}
         >
           {TabsArr.map((data, i) => (
-            <button style={{ width: "auto" }} className="px-3 prbutton">
+            <button
+              key={i}
+              style={{ width: "auto" }}
+              className="px-3 prbutton"
+              onClick={() => navigate(data.path)}
+            >
               {data.title}
             </button>
           ))}

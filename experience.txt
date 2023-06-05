@@ -1,0 +1,3 @@
+# We have atleast basic knowledge of the languages we used like we Used React , python and mysql.
+# In short task it is fine but in long project chatgpt didnot analysis whats the next step or what do to next step.
+# We have to analysis that the code provide is of latest version or old because chatpgt work on at before sep 2021
